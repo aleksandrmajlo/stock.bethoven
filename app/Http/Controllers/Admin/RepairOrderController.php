@@ -18,11 +18,22 @@ class RepairOrderController extends Controller
         return view('admin.repair-orders.index');
     }
 
-    public function list(): JsonResponse
+    public function list(Request $request): JsonResponse
     {
+        $search = trim($request->string('search')->toString());
+
         return response()->json([
             'items' => RepairOrder::query()
                 ->with('items')
+                ->when($search !== '', function ($query) use ($search) {
+                    $query->where(function ($query) use ($search) {
+                        $query
+                            ->where('client_name', 'like', "%{$search}%")
+                            ->orWhere('client_phone', 'like', "%{$search}%")
+                            ->orWhere('car_info', 'like', "%{$search}%")
+                            ->orWhere('master_name', 'like', "%{$search}%");
+                    });
+                })
                 ->latest()
                 ->get(),
         ]);
@@ -57,7 +68,7 @@ class RepairOrderController extends Controller
                 ->lockForUpdate()
                 ->first();
 
-            if (!$part) {
+            if (! $part) {
                 return response()->json(['message' => 'Запчастину не знайдено'], 404);
             }
 

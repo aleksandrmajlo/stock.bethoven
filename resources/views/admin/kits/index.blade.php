@@ -29,15 +29,86 @@
         </div>
 
         <div class="bg-white rounded-3xl border shadow-sm overflow-hidden">
-            <div class="p-5 border-b flex items-center justify-between">
-                <div class="font-bold">Список комплектів</div>
+            <div class="border-b bg-gradient-to-r from-slate-50 via-white to-slate-50 p-5">
+                <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+                    <div class="min-w-0 flex-1">
+                        <div class="mb-3 flex items-center gap-2">
+                            <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-950 text-white shadow-sm">
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <circle cx="11" cy="11" r="7"></circle>
+                                    <path d="m20 20-3.5-3.5"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="font-bold text-slate-900">Пошук комплектів</div>
+                                <div class="text-xs text-slate-500">За назвою комплекту</div>
+                            </div>
+                        </div>
 
-                <button
-                    @click="fetchKits()"
-                    class="rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold hover:bg-slate-200"
-                >
-                    Оновити
-                </button>
+                        <form @submit.prevent="applySearch()" class="flex max-w-3xl flex-col gap-2 sm:flex-row">
+                            <label class="relative block flex-1">
+                                <span class="sr-only">Назва комплекту</span>
+                                <svg class="pointer-events-none absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <circle cx="11" cy="11" r="7"></circle>
+                                    <path d="m20 20-3.5-3.5"></path>
+                                </svg>
+                                <input
+                                    type="text"
+                                    inputmode="search"
+                                    x-model="search"
+                                    @input.debounce.350ms="applySearch()"
+                                    @keydown.escape.prevent="clearSearch()"
+                                    class="h-12 w-full rounded-2xl border-slate-200 bg-white pl-12 pr-11 text-sm text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-slate-900 focus:ring-slate-900"
+                                    placeholder="Наприклад, VW Touareg..."
+                                    autocomplete="off"
+                                >
+                                <button
+                                    x-show="search.length > 0"
+                                    x-transition.opacity
+                                    type="button"
+                                    @click="clearSearch()"
+                                    class="absolute right-2 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+                                    aria-label="Очистити пошук"
+                                >
+                                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                        <path d="M18 6 6 18M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </label>
+
+                            <button
+                                type="submit"
+                                class="inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-slate-950 px-5 text-sm font-semibold text-white shadow-sm transition hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-slate-900 focus:ring-offset-2"
+                            >
+                                <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                    <circle cx="11" cy="11" r="7"></circle>
+                                    <path d="m20 20-3.5-3.5"></path>
+                                </svg>
+                                Знайти
+                            </button>
+                        </form>
+                    </div>
+
+                    <div class="flex items-center justify-between gap-3 lg:justify-end">
+                        <div class="text-sm text-slate-500" aria-live="polite">
+                            <span x-show="!loading">
+                                Знайдено: <span class="font-bold text-slate-900" x-text="kits.length"></span>
+                            </span>
+                        </div>
+
+                        <button
+                            @click="fetchKits()"
+                            :disabled="loading"
+                            class="inline-flex items-center gap-2 rounded-xl bg-slate-100 px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-200 disabled:cursor-wait disabled:opacity-60"
+                        >
+                            <svg class="h-4 w-4" :class="loading ? 'animate-spin' : ''" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                                <path d="M20 11a8.1 8.1 0 0 0-15.5-2M4 4v5h5"></path>
+                                <path d="M4 13a8.1 8.1 0 0 0 15.5 2M20 20v-5h-5"></path>
+                            </svg>
+                            Оновити
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div class="overflow-x-auto">
@@ -56,7 +127,7 @@
                     <tbody>
                     <template x-if="loading">
                         <tr>
-                            <td colspan="5" class="p-8 text-center text-slate-400">
+                            <td colspan="6" class="p-8 text-center text-slate-400">
                                 Завантаження...
                             </td>
                         </tr>
@@ -115,8 +186,17 @@
 
                     <template x-if="!loading && kits.length === 0">
                         <tr>
-                            <td colspan="5" class="p-8 text-center text-slate-400">
-                                Комплектів поки немає
+                            <td colspan="6" class="p-12 text-center">
+                                <div class="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400">
+                                    <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+                                        <circle cx="11" cy="11" r="7"></circle>
+                                        <path d="m20 20-3.5-3.5"></path>
+                                    </svg>
+                                </div>
+                                <div class="mt-3 font-bold text-slate-700" x-text="search.trim() ? 'Нічого не знайдено' : 'Комплектів поки немає'"></div>
+                                <div x-show="search.trim()" class="mt-1 text-sm text-slate-400">
+                                    Спробуйте змінити назву комплекту
+                                </div>
                             </td>
                         </tr>
                     </template>
@@ -221,6 +301,8 @@
                 loading: false,
                 saving: false,
                 errors: {},
+                search: '',
+                abortController: null,
 
                 toast: {
                     show: false,
@@ -241,22 +323,72 @@
                 },
 
                 init() {
+                    const params = new URLSearchParams(window.location.search);
+                    this.search = params.get('search') || '';
                     this.fetchKits();
                 },
 
                 async fetchKits() {
+                    if (this.abortController) {
+                        this.abortController.abort();
+                    }
+
+                    const controller = new AbortController();
+                    this.abortController = controller;
                     this.loading = true;
 
-                    const response = await fetch('{{ route('admin.kits.list') }}', {
-                        headers: {
-                            'Accept': 'application/json',
-                        },
-                    });
+                    const params = new URLSearchParams(window.location.search);
+                    const search = this.search.trim();
 
-                    const data = await response.json();
+                    if (search) {
+                        params.set('search', search);
+                    } else {
+                        params.delete('search');
+                    }
 
-                    this.kits = data.items;
-                    this.loading = false;
+                    try {
+                        const response = await fetch(`{{ route('admin.kits.list') }}?${params.toString()}`, {
+                            headers: {
+                                'Accept': 'application/json',
+                            },
+                            signal: controller.signal,
+                        });
+
+                        const data = await response.json();
+                        this.kits = data.items;
+                    } catch (error) {
+                        if (error.name !== 'AbortError') {
+                            this.showToast('Не вдалося завантажити комплекти');
+                        }
+                    } finally {
+                        if (!controller.signal.aborted) {
+                            this.loading = false;
+                        }
+                    }
+                },
+
+                applySearch() {
+                    const params = new URLSearchParams(window.location.search);
+                    const search = this.search.trim();
+
+                    if (search) {
+                        params.set('search', search);
+                    } else {
+                        params.delete('search');
+                    }
+
+                    const query = params.toString();
+                    window.history.replaceState({}, '', `${window.location.pathname}${query ? `?${query}` : ''}`);
+                    this.fetchKits();
+                },
+
+                clearSearch() {
+                    if (!this.search && !new URLSearchParams(window.location.search).has('search')) {
+                        return;
+                    }
+
+                    this.search = '';
+                    this.applySearch();
                 },
 
                 openCreateModal() {

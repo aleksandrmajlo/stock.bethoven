@@ -10,10 +10,12 @@ class LabelPrinterService
 {
     public function printPartLabel(KitPart $part): array
     {
-        $settings = Setting::query()->pluck('value', 'key')->toArray();
+        $settings = Setting::query()
+            ->pluck('value', 'key')
+            ->toArray();
 
         $ip = $settings['printer_ip'] ?? null;
-        $port = (int)($settings['printer_port'] ?? 9100);
+        $port = (int) ($settings['printer_port'] ?? 9100);
 
         if (!$ip) {
             return [
@@ -27,9 +29,9 @@ class LabelPrinterService
 
         $tspl = <<<TSPL
 SIZE 58 mm,40 mm
-GAP 2 mm,0
-DENSITY 8
-DIRECTION 1
+GAP 3 mm,0 mm
+DENSITY 7
+DIRECTION 0
 CLS
 TEXT 30,25,"3",0,1,1,"{$barcode}"
 BARCODE 30,70,"128",90,1,0,2,2,"{$barcode}"
@@ -39,7 +41,13 @@ PRINT 1,1
 TSPL;
 
         try {
-            $socket = fsockopen($ip, $port, $errno, $errstr, 3);
+            $socket = fsockopen(
+                $ip,
+                $port,
+                $errno,
+                $errstr,
+                3
+            );
 
             if (!$socket) {
                 return [
@@ -69,7 +77,11 @@ TSPL;
 
     private function safeText(string $text): string
     {
-        $text = iconv('UTF-8', 'ASCII//TRANSLIT//IGNORE', $text) ?: $text;
+        $text = iconv(
+            'UTF-8',
+            'ASCII//TRANSLIT//IGNORE',
+            $text
+        ) ?: $text;
 
         return mb_substr(
             preg_replace('/[^A-Za-z0-9\-\s]/', '', $text),

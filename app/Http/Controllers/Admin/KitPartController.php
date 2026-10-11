@@ -15,6 +15,7 @@ class KitPartController extends Controller
 {
     public function index(): View
     {
+
         return view('admin.kit-parts.index', [
             'kits' => Kit::query()->orderBy('title')->get(),
         ]);
@@ -22,10 +23,19 @@ class KitPartController extends Controller
 
     public function list(Request $request): JsonResponse
     {
+        $search = trim($request->string('search')->toString());
+
         $items = KitPart::query()
             ->with('kit:id,title')
             ->when($request->filled('kit_id'), function ($query) use ($request) {
                 $query->where('kit_id', $request->integer('kit_id'));
+            })
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where(function ($query) use ($search) {
+                    $query
+                        ->where('title', 'like', "%{$search}%")
+                        ->orWhere('barcode', 'like', "%{$search}%");
+                });
             })
             ->latest()
             ->get();

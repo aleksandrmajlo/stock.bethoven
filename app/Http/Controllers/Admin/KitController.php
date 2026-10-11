@@ -15,10 +15,15 @@ class KitController extends Controller
         return view('admin.kits.index');
     }
 
-    public function list(): JsonResponse
+    public function list(Request $request): JsonResponse
     {
+        $search = trim($request->string('search')->toString());
+
         $kits = Kit::query()
             ->withCount('parts')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where('title', 'like', "%{$search}%");
+            })
             ->latest()
             ->get();
 
